@@ -8,7 +8,6 @@ function ResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge, tra
 
 	self.statem1=inid["state-1"]
 	self.state0=inid["state0"]
-	self.inputm1=inid["input-1"]
 	self.input0=inid["input0"]
 	self.rho=rho
 	local parrelModel=nn.ParallelTable()
@@ -53,50 +52,34 @@ function ResidueRecurrent:backward(inputTable, gradOutputTable, scale)
 	gradState=self.outputModel:backward(self.state[4],gradOutputTable[2],scale)
 	input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[2],self.state[3],inputTable[1],self.state[2]},gradState))
 	gradOutputTable[1]+=state_1
-	gradOutputTable[step-2]+=state_2--state 0 update here,step=2
+	self.updstate0=state_2--state 0 update here,step=2;gradOutputTable[step-2]+=state_2
 	self.gradInput[2]+=input
 	self.gradInput[1]=input_1
 	gradState=self.outputModel:backward(self.state[3],gradOutputTable[1],scale)
 	input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[1],self.state[2],self.input0,self.state[1]},gradState))
-	gradOutputTable[0]+=state_1--state 0 update here,step=1
-	gradOutputTable[-1]+=state_2--state -1 update here
+	self.updstate0+=state_1--state 0 update here,step=1;gradOutputTable[0]+=state_1
+	self.updstatem1=state_2--state -1 update here;gradOutputTable[-1]+=state_2
 	self.gradInput[1]+=input
-	self.gradInput[0]=input_1--input 0 update here
+	self.updinput0=input_1--input 0 update here;self.gradInput[0]=input_1
 	return self.gradInput
 end
 
 function ResidueRecurrent:zeroGradParameters()
-	statenet:zeroGradParameters()
-	outputnet:zeroGradParameters()
+	self.stateModel:zeroGradParameters()
+	self.outputModel:zeroGradParameters()
+	self.updstate0=0
+	self.updstatem1=0
+	self.updinput0=0
+end
+
+function ResidueRecurrent:updateParameters(learningRate)
+	self.stateModel:updateParameters(learningRate)
+	self.outputModel:updateParameters(learningRate)
+	self.state0:add(-learningRate,self.updstate0)
+	self.statem1:add(-learningRate,self.updstatem1)
+	self.input0:add(-learningRate,self.updinput0)
 end
 
 function ResidueRecurrent:__tostring__()
-   local tab = '  '
-   local line = '\n'
-   local next = ' -> '
-   local str = torch.type(self)
-   str = str .. ' {' .. line .. tab .. '[{input(t), output(t-1)}'
-   for i=1,3 do
-      str = str .. next .. '(' .. i .. ')'
-   end
-   str = str .. next .. 'output(t)]'
-   
-   local tab = '  '
-   local line = '\n  '
-   local next = '  |`-> '
-   local ext = '  |    '
-   local last = '   ... -> '
-   str = str .. line ..  '(1): ' .. ' {' .. line .. tab .. 'input(t)'
-   str = str .. line .. tab .. next .. '(t==0): ' .. tostring(self.startModule):gsub('\n', '\n' .. tab .. ext)
-   str = str .. line .. tab .. next .. '(t~=0): ' .. tostring(self.inputModule):gsub('\n', '\n' .. tab .. ext)
-   str = str .. line .. tab .. 'output(t-1)'
-   str = str .. line .. tab .. next .. tostring(self.feedbackModule):gsub('\n', line .. tab .. ext)
-   str = str .. line .. "}"
-   local tab = '  '
-   local line = '\n'
-   local next = ' -> '
-   str = str .. line .. tab .. '(' .. 2 .. '): ' .. tostring(self.mergeModule):gsub(line, line .. tab)
-   str = str .. line .. tab .. '(' .. 3 .. '): ' .. tostring(self.transferModule):gsub(line, line .. tab)
-   str = str .. line .. '}'
-   return str
+	return torch.type(self)
 end
