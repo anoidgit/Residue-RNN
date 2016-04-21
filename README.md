@@ -7,7 +7,7 @@ This library includes documentation for the following objects:
 
 Modules that `forward` entire sequences :
 
- * [ResidueRecurrent](#rrnn.ResidueRecurrent) : A Residue Recurrent Nueral Network;
+ * [ResidueRecurrent](#rrnn.ResidueRecurrent) : A Residue Recurrent Nueral Network
 
 <a name='rrnn.ResidueRecurrent'></a>
 ## ResidueRecurrent ##
