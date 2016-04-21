@@ -11,9 +11,16 @@ Modules that `forward` entire sequences :
 
 <a name='rrnn.ResidueRecurrent'></a>
 ## ResidueRecurrent ##
+References about Recurrent:
+ * A. [Sutsekever Thesis Sec. 2.5 and 2.8](http://www.cs.utoronto.ca/~ilya/pubs/ilya_sutskever_phd_thesis.pdf)
+ * B. [Mikolov Thesis Sec. 3.2 and 3.3](http://www.fit.vutbr.cz/~imikolov/rnnlm/thesis.pdf)
+ * C. [RNN and Backpropagation Guide](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.3.9311&rep=rep1&type=pdf)
+
+A [composite Module](https://github.com/torch/nn/blob/master/doc/containers.md#containers) for implementing Recurrent Neural Networks (RNN), excluding the output layer.
+
 The `nn.ResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, rho)` constructor takes 8 arguments:
 * `inid` : the table contains keys: "state-1", "state0" and "input0" means the state at time -1 and 0 and the input at time 0, the state must be of the same size with the `merge` Modules output, and the input must be of the same size as the `input` Modules input.
- * `input` : a Module that processes input Tensor. Output must be of same size as `nstate`, and same size as the output of the `merge` `rstate` Module.
+ * `input` : a Module that processes input Tensor. Output must be of same size as `nstate`, `rinput` and `rstate` Module.
  * `nstate` : a Module that processes the previous step's output of `merge` Mudule up to the `merge` Module.
  * `rinput` : a Module that processes the previous step's input to the `input` Mudule up to the `merge` Module.
  * `rstate` : a Module that processes the previous second step's output of the `merge` Mudule up to the `merge` Module.
