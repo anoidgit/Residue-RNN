@@ -1,7 +1,7 @@
 # Residue-RNN
 Residue Recurrent/Recursive Neural Network with Torch
 
-This is a Residue Recurrent Neural Network library that extends Torch's nn. 
+This is a Residue Recurrent/Recursive Neural Network library that extends Torch's nn. 
 You can use it to build RRNN.
 This library includes documentation for the following objects:
 
