@@ -26,7 +26,7 @@ The `nn.ResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, r
  * `rstate` : a Module that processes the previous second step's output of the `merge` Mudule up to the `merge` Module.
  * `merge` : a [table Module](https://github.com/torch/nn/blob/master/doc/table.md#table-layers) that merges the outputs of the `input`, `nstate`,`rinput` and `rstate` Module before being forwarded through the `transfer` Module.
  * `transfer` : a Module that processes the output of the `merge` Module and output a time-step's output of the ResidueRecurrent Module.
- * `rho` : the maximum amount of backpropagation steps to take back in time. Limits the number of previous steps kept in memory. Due to the vanishing gradients effect, references A and B recommend `rho = 5` (or lower). Defaults to ?.
+ * `rho` : the maximum amount of backpropagation steps to take back in time. Limits the number of previous steps kept in memory. Due to the vanishing gradients effect, references A and B recommend `rho = 5` (or lower). This Module weak the vanishing gradients effect, Defaults to ?.
 
 ### [OutputTable] forward(inputTable) ###
 Process a input sequece table `inputTable` with Residue Recurrent Neural Network and output the Module's output sequence table `OutputTable`.
