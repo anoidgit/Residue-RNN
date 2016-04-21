@@ -28,6 +28,8 @@ The `nn.ResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, r
  * `transfer` : a Module that processes the output of the `merge` Module and output a time-step's output of the ResidueRecurrent Module.
  * `rho` : the maximum amount of backpropagation steps to take back in time. Limits the number of previous steps kept in memory. Due to the vanishing gradients effect, references A and B recommend `rho = 5` (or lower). This Module weak the vanishing gradients effect, Defaults to ?.
 
+Note that current implementation backward gradOutput through the whole sequence, the argument `rho` does not make sense. The in progress implementation can correctly use the `rho` argument, but have some problem, and not fixed.
+
 ### [OutputTable] forward(inputTable) ###
 Process a input sequece table `inputTable` with Residue Recurrent Neural Network and output the Module's output sequence table `OutputTable`.
 
