@@ -35,7 +35,7 @@ Process a input sequece table `inputTable` with Residue Recurrent Neural Network
 Process backward with the Residue Recurrent Neural Network and output the Module's gradInput sequence(a table). `inputTable` is the Modules input sequence table. `gradOutputTable` is the gradOutput sequence table given by the layer on it. `scale` is the scale will be used by accGradParameters, default is 1.
 
 ### zeroGradParameters() ###
-this will zero the accumulation of the gradients with respect to the parameters, accumulated through accGradParameters(input, gradOutput,scale) calls.
+This will zero the accumulation of the gradients with respect to the parameters, accumulated through accGradParameters(input, gradOutput,scale) calls.
 
 ### updateParameters(learningRate) ###
-this will update the parameters, according to the accumulation of the gradients with respect to the parameters, accumulated through backward() calls.
+This will update the parameters, according to the accumulation of the gradients with respect to the parameters, accumulated through backward() calls.
