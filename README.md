@@ -7,7 +7,7 @@ This library includes documentation for the following objects:
 
 Modules that `forward` entire sequences :
 
- * [FastResidueRecurrent](#rrnn.ResidueRecurrent) : A Residue Recurrent Nueral Network
+ * [FastResidueRecurrent](#rrnn.ResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network
 
 <a name='rrnn.FastResidueRecurrent'></a>
 ## FastResidueRecurrent ##
