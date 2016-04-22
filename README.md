@@ -7,10 +7,10 @@ This library includes documentation for the following objects:
 
 Modules that `forward` entire sequences :
 
- * [ResidueRecurrent](#rrnn.ResidueRecurrent) : A Residue Recurrent Nueral Network
+ * [FastResidueRecurrent](#rrnn.ResidueRecurrent) : A Residue Recurrent Nueral Network
 
-<a name='rrnn.ResidueRecurrent'></a>
-## ResidueRecurrent ##
+<a name='rrnn.FastResidueRecurrent'></a>
+## FastResidueRecurrent ##
 References about Recurrent:
  * A. [Sutsekever Thesis Sec. 2.5 and 2.8](http://www.cs.utoronto.ca/~ilya/pubs/ilya_sutskever_phd_thesis.pdf)
  * B. [Mikolov Thesis Sec. 3.2 and 3.3](http://www.fit.vutbr.cz/~imikolov/rnnlm/thesis.pdf)
@@ -18,7 +18,7 @@ References about Recurrent:
 
 A [composite Module](https://github.com/torch/nn/blob/master/doc/containers.md#containers) for implementing Recurrent Neural Networks (RNN), excluding the output layer.
 
-The `nn.ResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, rho)` constructor takes 8 arguments:
+The `nn.FastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer)` constructor takes 7 arguments:
 * `inid` : the table contains keys: "state-1", "state0" and "input0" means the state at time -1 and 0 and the input at time 0, the state must be of the same size with the `merge` Modules output, and the input must be of the same size as the `input` Modules input.
  * `input` : a Module that processes input Tensor. Output must be of same size as `nstate`, `rinput` and `rstate` Module.
  * `nstate` : a Module that processes the previous step's output of `merge` Mudule up to the `merge` Module.
@@ -26,9 +26,8 @@ The `nn.ResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, r
  * `rstate` : a Module that processes the previous second step's output of the `merge` Mudule up to the `merge` Module.
  * `merge` : a [table Module](https://github.com/torch/nn/blob/master/doc/table.md#table-layers) that merges the outputs of the `input`, `nstate`,`rinput` and `rstate` Module before being forwarded through the `transfer` Module.
  * `transfer` : a Module that processes the output of the `merge` Module and output a time-step's output of the ResidueRecurrent Module.
- * `rho` : the maximum amount of backpropagation steps to take back in time. Limits the number of previous steps kept in memory. Due to the vanishing gradients effect, references A and B recommend `rho = 5` (or lower). This Module weak the vanishing gradients effect, Defaults to ?.
 
-Note that current implementation backward gradOutput through the whole sequence, the argument `rho` does not make sense. The in progress implementation can correctly use the `rho` argument, but have some problem, and not fixed.
+Note that current implementation backward gradOutput through the whole sequence in an effective and fast way, so there is no `rho` parameters, Due to the vanishing gradients effect, references A and B recommend rho = 5 (or lower) for Recurrent, while this Module weak the vanishing gradients effect.
 
 ### [OutputTable] forward(inputTable) ###
 Process a input sequece table `inputTable` with Residue Recurrent Neural Network and output the Module's output sequence table `OutputTable`.
