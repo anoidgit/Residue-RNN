@@ -1,15 +1,14 @@
 ------------------------------------------------------------------------
 --ano build at 2016/04/21
 ------------------------------------------------------------------------
-local ResidueRecurrent, parent = torch.class('nn.ResidueRecurrent', 'nn.Container')
+local FastResidueRecurrent, parent = torch.class('nn.FastResidueRecurrent', 'nn.Container')
 
-function ResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge, transfer, rho)
+function FastResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge, transfer)
 	parent.__init(self)
 
 	self.statem1=inid["state-1"]
 	self.state0=inid["state0"]
 	self.input0=inid["input0"]
-	self.rho=rho
 	local parrelModel=nn.ParallelTable()
 		:add(input)
 		:add(nstate)
@@ -21,10 +20,9 @@ function ResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge, tra
 	self.outputModel=transfer
 end
 
-function ResidueRecurrent:forward(inputTable)
+function FastResidueRecurrent:forward(inputTable)
 	-- output(t) = transfer(state(t-1) + input(t) + state(t-2) + input(t-1))
 	local tmp
-	self.maxBPTT=(#inputTable<self.rho) and #inputTable or self.rho
 	self.output={}
 	inputTable[0]=self.input0
 	self.state={}
@@ -38,7 +36,7 @@ function ResidueRecurrent:forward(inputTable)
 	return self.output
 end
 
-function ResidueRecurrent:backward(inputTable, gradOutputTable, scale)
+function FastResidueRecurrent:backward(inputTable, gradOutputTable, scale)
 	scale = scale or 1
 	local gradState,input,state_1,input_1,state_2
 	for step=#gradOutputTable,3,-1 do
@@ -64,7 +62,7 @@ function ResidueRecurrent:backward(inputTable, gradOutputTable, scale)
 	return self.gradInput
 end
 
-function ResidueRecurrent:zeroGradParameters()
+function FastResidueRecurrent:zeroGradParameters()
 	self.stateModel:zeroGradParameters()
 	self.outputModel:zeroGradParameters()
 	self.updstate0=0
@@ -72,7 +70,7 @@ function ResidueRecurrent:zeroGradParameters()
 	self.updinput0=0
 end
 
-function ResidueRecurrent:updateParameters(learningRate)
+function FastResidueRecurrent:updateParameters(learningRate)
 	self.stateModel:updateParameters(learningRate)
 	self.outputModel:updateParameters(learningRate)
 	self.state0:add(-learningRate,self.updstate0)
@@ -80,6 +78,6 @@ function ResidueRecurrent:updateParameters(learningRate)
 	self.input0:add(-learningRate,self.updinput0)
 end
 
-function ResidueRecurrent:__tostring__()
+function FastResidueRecurrent:__tostring__()
 	return torch.type(self)
 end
