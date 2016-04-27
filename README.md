@@ -8,7 +8,7 @@ This library includes documentation for the following objects:
 Modules that `forward` entire sequences :
 
  * [FastResidueRecurrent](#rrnn.FastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network;
- * [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network with clip gradient, which helpful avoid gradient explosion.
+ * [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network with Clip Gradient, which can help avoid gradient explosion.
 
 <a name='rrnn.FastResidueRecurrent'></a>
 ## FastResidueRecurrent ##
