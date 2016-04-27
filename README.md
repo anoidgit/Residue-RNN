@@ -7,7 +7,8 @@ This library includes documentation for the following objects:
 
 Modules that `forward` entire sequences :
 
- * [FastResidueRecurrent](#rrnn.FastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network
+ * [FastResidueRecurrent](#rrnn.FastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network;
+ * [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent) : A Fast Effective Whole Sequence BPTT Residue Recurrent Neural Network with clip gradient, which helpful avoid gradient explosion.
 
 <a name='rrnn.FastResidueRecurrent'></a>
 ## FastResidueRecurrent ##
@@ -18,7 +19,7 @@ References about Recurrent:
 
 A [composite Module](https://github.com/torch/nn/blob/master/doc/containers.md#containers) for implementing Recurrent Neural Networks (RNN), excluding the output layer.
 
-The `nn.FastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer)` constructor takes 7 arguments:
+The `rrnn.FastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer)` constructor takes 7 arguments:
 * `inid` : the table contains keys: "state-1", "state0" and "input0" means the state at time -1 and 0 and the input at time 0, the state must be of the same size with the `merge` Modules output, and the input must be of the same size as the `input` Modules input.
  * `input` : a Module that processes input Tensor. Output must be of same size as `nstate`, `rinput` and `rstate` Module.
  * `nstate` : a Module that processes the previous step's output of `merge` Mudule up to the `merge` Module.
@@ -40,3 +41,17 @@ This will zero the accumulation of the gradients with respect to the parameters,
 
 ### updateParameters(learningRate) ###
 This will update the parameters, according to the accumulation of the gradients with respect to the parameters, accumulated through backward() calls.
+
+<a name='rrnn.ClipGradientFastResidueRecurrent'></a>
+## ClipGradientFastResidueRecurrent ##
+References about Recurrent:
+ * A. [Sutsekever Thesis Sec. 2.5 and 2.8](http://www.cs.utoronto.ca/~ilya/pubs/ilya_sutskever_phd_thesis.pdf)
+ * B. [Mikolov Thesis Sec. 3.2 and 3.3](http://www.fit.vutbr.cz/~imikolov/rnnlm/thesis.pdf)
+ * C. [RNN and Backpropagation Guide](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.3.9311&rep=rep1&type=pdf)
+
+A [composite Module](https://github.com/torch/nn/blob/master/doc/containers.md#containers) for implementing Recurrent Neural Networks (RNN), excluding the output layer.
+
+The `rrnn.ClipGradientFastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, maxgradient)` constructor takes 8 arguments, most arguments are the same with [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent), except `maxgradient`:
+ * `maxgradient` : the maximum value that the gradient can be while bptt, a value larger then that will clip to `maxgradient`, this can effectively keep the Module from gradient explosion, make the Module easier to use.
+
+The method is same with [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent).
