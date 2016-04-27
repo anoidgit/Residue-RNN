@@ -51,7 +51,7 @@ References about Recurrent:
 
 A [composite Module](https://github.com/torch/nn/blob/master/doc/containers.md#containers) for implementing Recurrent Neural Networks (RNN), excluding the output layer.
 
-The `rrnn.ClipGradientFastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, maxgradient)` constructor takes 8 arguments, most arguments are the same with [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent), except `maxgradient`:
+The `rrnn.ClipGradientFastResidueRecurrent(inid, input, nstate, rinput, rstate, merge, transfer, maxgradient)` constructor takes 8 arguments, most arguments are the same with [FastResidueRecurrent](#rrnn.FastResidueRecurrent), except `maxgradient`:
  * `maxgradient` : the maximum value that the gradient can be while bptt, a value larger then that will clip to `maxgradient`, this can effectively keep the Module from gradient explosion, make the Module easier to use.
 
-The method is same with [ClipGradientFastResidueRecurrent](#rrnn.ClipGradientFastResidueRecurrent).
+The method is same with [FastResidueRecurrent](#rrnn.FastResidueRecurrent).
