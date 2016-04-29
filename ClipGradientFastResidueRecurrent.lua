@@ -1,6 +1,4 @@
-------------------------------------------------------------------------
---ano build at 2016/04/27
-------------------------------------------------------------------------
+require "nn"
 local ClipGradientFastResidueRecurrent, parent = torch.class('nn.ClipGradientFastResidueRecurrent', 'nn.Container')
 
 function ClipGradientFastResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge, transfer, maxgradient)
@@ -46,9 +44,9 @@ function ClipGradientFastResidueRecurrent:backward(inputTable, gradOutputTable, 
 		end
 		gradState=self.outputModel:backward(self.state[step+2],gradOutputTable[step],scale)
 		input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[step],self.state[step+1],inputTable[step-1],self.state[step]},gradState))
-		gradOutputTable[step-1]+=state_1
-		gradOutputTable[step-2]+=state_2
-		self.gradInput[step]+=input
+		gradOutputTable[step-1]=gradOutputTable[step-1]+state_1
+		gradOutputTable[step-2]=gradOutputTable[step-2]+state_2
+		self.gradInput[step]=self.gradInput[step]+input
 		self.gradInput[step-1]=input_1
 	end
 	if gradOutputTable[2]>self.clipgradient then
@@ -56,18 +54,18 @@ function ClipGradientFastResidueRecurrent:backward(inputTable, gradOutputTable, 
 	end
 	gradState=self.outputModel:backward(self.state[4],gradOutputTable[2],scale)
 	input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[2],self.state[3],inputTable[1],self.state[2]},gradState))
-	gradOutputTable[1]+=state_1
+	gradOutputTable[1]=gradOutputTable[1]+state_1
 	self.updstate0=state_2--state 0 update here,step=2;gradOutputTable[step-2]+=state_2
-	self.gradInput[2]+=input
+	self.gradInput[2]=self.gradInput[2]+input
 	self.gradInput[1]=input_1
 	if gradOutputTable[1]>self.clipgradient then
 		gradOutputTable[1]=self.clipgradient
 	end
 	gradState=self.outputModel:backward(self.state[3],gradOutputTable[1],scale)
 	input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[1],self.state[2],self.input0,self.state[1]},gradState))
-	self.updstate0+=state_1--state 0 update here,step=1;gradOutputTable[0]+=state_1
+	self.updstate0=self.updstate0+state_1--state 0 update here,step=1;gradOutputTable[0]+=state_1
 	self.updstatem1=state_2--state -1 update here;gradOutputTable[-1]+=state_2
-	self.gradInput[1]+=input
+	self.gradInput[1]=self.gradInput[1]+input
 	self.updinput0=input_1--input 0 update here;self.gradInput[0]=input_1
 	return self.gradInput
 end
