@@ -75,7 +75,7 @@ function FastResidueRecurrent:backward(inputTable, gradOutputTable, scale)
 		input_1:mul(scale)
 	end
 	self.updinput0=input_1:clone()--input 0 update here;gradInput[0]=input_1
-	return gradInput
+	return self.gradInput
 end
 
 function FastResidueRecurrent:zeroGradParameters()
