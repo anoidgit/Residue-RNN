@@ -107,9 +107,9 @@ end
 function ClipGradientFastResidueRecurrent:zeroGradParameters()
 	self.stateModel:zeroGradParameters()
 	self.outputModel:zeroGradParameters()
-	self.updstate0:fill(0)
-	self.updstatem1:fill(0)
-	self.updinput0:fill(0)
+	self.updstate0:zero()
+	self.updstatem1:zero()
+	self.updinput0:zero()
 end
 
 function ClipGradientFastResidueRecurrent:updateParameters(learningRate)
