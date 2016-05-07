@@ -12,11 +12,11 @@ end
 startlr=0.05
 minlr=0.00001
 saturate=400--'epoch at which linear decayed LR will reach minlr'
-batchsize=64
+batchsize=32
 maxepoch=30
 earlystop=5
 cutoff=5
-seqlen=32
+seqlen=64
 hiddensize=200
 progress=true
 savepath=paths.concat(dl.SAVE_PATH, 'rrnnlm')
@@ -37,9 +37,9 @@ lm:add(nn.SplitTable(1)) -- tensor to table of tensors
 --rrnn layers
 inputsize = hiddensize
 inid={}
-inid["state-1"]=torch.Tensor(batchsize,hiddensize):fill(0)
-inid["state0"]=torch.Tensor(batchsize,hiddensize):fill(0)
-inid["input0"]=torch.Tensor(batchsize,inputsize):fill(0)
+inid["state-1"]=torch.Tensor(1,hiddensize):expand(batchsize):zero()
+inid["state0"]=torch.Tensor(1,hiddensize):expand(batchsize):zero()
+inid["input0"]=torch.Tensor(1,inputsize):expand(batchsize):zero()
 rrnn = nn.ClipGradientFastResidueRecurrent(inid,nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Sequential():add(nn.CAddTable()):add(nn.Sigmoid()),nn.Sequential():add(nn.Linear(inputsize, #trainset.ivocab)):add(nn.LogSoftMax()),cutoff)
 
 print"Language Model:"
