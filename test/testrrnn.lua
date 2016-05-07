@@ -1,6 +1,5 @@
 require 'paths'
 require 'rnn'
-require 'ClipGradientFastResidueRecurrent'
 local dl = require 'dataload'
 
 function savemodel(fname,modelsave)
@@ -12,15 +11,15 @@ end
 startlr=0.05
 minlr=0.00001
 saturate=400--'epoch at which linear decayed LR will reach minlr'
-batchsize=32
+batchsize=64
 maxepoch=30
 earlystop=5
 cutoff=5
-seqlen=10
+seqlen=32
 hiddensize=200
 progress=true
-savepath=paths.concat(dl.SAVE_PATH, 'rrnnlm')
-id="20160504rrnn"
+savepath=paths.concat(dl.SAVE_PATH, 'rnnlm')
+id="20160504rnn"
 
 local trainset, validset, testset = dl.loadPTB({batchsize,1,1})
 print("Vocabulary size : "..#trainset.ivocab) 
@@ -34,19 +33,28 @@ lookup.maxnormout = -1 -- prevent weird maxnormout behaviour
 lm:add(lookup) -- input is seqlen x batchsize
 lm:add(nn.SplitTable(1)) -- tensor to table of tensors
 
---rrnn layers
+-- rnn layers
+local stepmodule = nn.Sequential() -- applied at each time-step
+local inputsize = hiddensize
+local rm =  nn.Sequential() -- input is {x[t], h[t-1]}
+	:add(nn.ParallelTable()
+		:add(i==1 and nn.Identity() or nn.Linear(inputsize, hiddensize)) -- input layer
+		:add(nn.Linear(hiddensize, hiddensize))) -- recurrent layer
+	:add(nn.CAddTable()) -- merge
+	:add(nn.Sigmoid()) -- transfer
+rnn = nn.Recurrence(rm, hiddensize, 1)
+stepmodule:add(rnn)
 inputsize = hiddensize
-inid={}
-inid["state-1"]=torch.Tensor(batchsize,hiddensize):fill(0)
-inid["state0"]=torch.Tensor(batchsize,hiddensize):fill(0)
-inid["input0"]=torch.Tensor(batchsize,inputsize):fill(0)
-rrnn = nn.ClipGradientFastResidueRecurrent(inid,nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Sequential():add(nn.CAddTable()):add(nn.Sigmoid()),nn.Sequential():add(nn.Linear(inputsize, #trainset.ivocab)):add(nn.LogSoftMax()),cutoff)
+
+-- output layer
+stepmodule:add(nn.Linear(inputsize, #trainset.ivocab))
+stepmodule:add(nn.LogSoftMax())
+
+-- encapsulate stepmodule into a Sequencer
+lm:add(nn.Sequencer(stepmodule))
 
 print"Language Model:"
 print(lm)
-
-print"RRNN:"
-print(rrnn)
 
 -- target is also seqlen x batchsize.
 local targetmodule = nn.SplitTable(1)
@@ -62,10 +70,8 @@ local xplog = {}
 xplog.dataset = 'PennTreeBank'
 xplog.vocab = trainset.vocab
 -- will only serialize params
-xplog.lmmodel = nn.Serial(lm)
-xplog.lmmodel:mediumSerial()
-xplog.rrnnmodel = nn.Serial(rrnn)
-xplog.rrnnmodel:mediumSerial()
+xplog.model = nn.Serial(lm)
+xplog.model:mediumSerial()
 --xplog.model = lm
 xplog.criterion = criterion
 xplog.targetmodule = targetmodule
@@ -95,20 +101,16 @@ while epoch <= maxepoch do
 		targets = targetmodule:forward(targets)
 		
 		-- forward
-		local outputslm = lm:forward(inputs)
-		local outputs = rrnn:forward(outputslm)
+		local outputs = lm:forward(inputs)
 		local err = criterion:forward(outputs, targets)
 		sumErr = sumErr + err
 		
 		-- backward 
 		local gradOutputs = criterion:backward(outputs, targets)
-		rrnn:zeroGradParameters()
-		local gradOutputsrrnn = rrnn:backward(outputslm, gradOutputs)
 		lm:zeroGradParameters()
-		lm:backward(inputs, gradOutputsrrnn)
+		lm:backward(inputs, gradOutputs)
 		
 		-- update
-		rrnn:updateParameters(lr)
 		lm:updateParameters(lr) -- affects params
 
 		if progress then
@@ -141,8 +143,7 @@ while epoch <= maxepoch do
 	local sumErr = 0
 	for i, inputs, targets in validset:subiter(seqlen, validsize) do
 		targets = targetmodule:forward(targets)
-		local outputslm = lm:forward(inputs)
-		local outputs = rrnn:forward(outputslm)
+		local outputs = lm:forward(inputs)
 		local err = criterion:forward(outputs, targets)
 		sumErr = sumErr + err
 	end
@@ -161,8 +162,7 @@ while epoch <= maxepoch do
 		local filename = paths.concat(savepath, id..'.t7')
 		print("Found new minima. Saving to "..filename)
 		torch.save(filename, xplog)
-		savemodel(fname..'.lm',lm)
-		savemodel(fname..'.rrnn',rrnn)
+		savemodel(filename..'.lm',lm)
 		ntrial = 0
 	elseif ntrial >= earlystop then
 		print("No new minima found after "..ntrial.." epochs.")
