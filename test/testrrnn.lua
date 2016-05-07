@@ -15,8 +15,8 @@ startlr=0.05
 minlr=0.00001
 saturate=400--'epoch at which linear decayed LR will reach minlr'
 batchsize=256
-maxepoch=50
-earlystop=5
+maxepoch=100
+earlystop=15
 cutoff=5
 seqlen=64
 hiddensize=200
@@ -144,7 +144,6 @@ while epoch <= maxepoch do
 	for i, inputs, targets in validset:subiter(seqlen, validsize) do
 		targets = targetmodule:forward(targets)
 		outputslm = lm:forward(inputs)
-		print(outputslm)
 		outputs = rrnn:forward(outputslm)
 		err = criterion:forward(outputs, targets)
 		sumErr = sumErr + err
