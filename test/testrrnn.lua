@@ -37,9 +37,9 @@ lm:add(nn.SplitTable(1)) -- tensor to table of tensors
 --rrnn layers
 inputsize = hiddensize
 inid={}
-inid["state-1"]=torch.Tensor(1,hiddensize):expand(batchsize):zero()
-inid["state0"]=torch.Tensor(1,hiddensize):expand(batchsize):zero()
-inid["input0"]=torch.Tensor(1,inputsize):expand(batchsize):zero()
+inid["state-1"]=torch.Tensor(1,hiddensize):expand(batchsize,hiddensize):zero()
+inid["state0"]=torch.Tensor(1,hiddensize):expand(batchsize,hiddensize):zero()
+inid["input0"]=torch.Tensor(1,inputsize):expand(batchsize,hiddensize):zero()
 rrnn = nn.ClipGradientFastResidueRecurrent(inid,nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Sequential():add(nn.CAddTable()):add(nn.Sigmoid()),nn.Sequential():add(nn.Linear(inputsize, #trainset.ivocab)):add(nn.LogSoftMax()),cutoff)
 
 print"Language Model:"
