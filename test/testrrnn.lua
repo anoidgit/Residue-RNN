@@ -12,7 +12,7 @@ end
 startlr=0.05
 minlr=0.00001
 saturate=400--'epoch at which linear decayed LR will reach minlr'
-batchsize=32
+batchsize=128
 maxepoch=30
 earlystop=5
 cutoff=5
@@ -37,9 +37,9 @@ lm:add(nn.SplitTable(1)) -- tensor to table of tensors
 --rrnn layers
 inputsize = hiddensize
 inid={}
-inid["state-1"]=torch.Tensor(1,hiddensize):expand(batchsize,hiddensize):zero()
-inid["state0"]=torch.Tensor(1,hiddensize):expand(batchsize,hiddensize):zero()
-inid["input0"]=torch.Tensor(1,inputsize):expand(batchsize,hiddensize):zero()
+inid["state-1"]=torch.Tensor(1,hiddensize):zero()
+inid["state0"]=torch.Tensor(1,hiddensize):zero()
+inid["input0"]=torch.Tensor(1,inputsize):zero()
 rrnn = nn.ClipGradientFastResidueRecurrent(inid,nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Linear(inputsize,hiddensize),nn.Linear(hiddensize,hiddensize),nn.Sequential():add(nn.CAddTable()):add(nn.Sigmoid()),nn.Sequential():add(nn.Linear(inputsize, #trainset.ivocab)):add(nn.LogSoftMax()),cutoff)
 
 print"Language Model:"
@@ -141,9 +141,10 @@ while epoch <= maxepoch do
 	local sumErr = 0
 	for i, inputs, targets in validset:subiter(seqlen, validsize) do
 		targets = targetmodule:forward(targets)
-		local outputslm = lm:forward(inputs)
-		local outputs = rrnn:forward(outputslm)
-		local err = criterion:forward(outputs, targets)
+		outputslm = lm:forward(inputs)
+		print(outputslm)
+		outputs = rrnn:forward(outputslm)
+		err = criterion:forward(outputs, targets)
 		sumErr = sumErr + err
 	end
 
@@ -161,8 +162,8 @@ while epoch <= maxepoch do
 		local filename = paths.concat(savepath, id..'.t7')
 		print("Found new minima. Saving to "..filename)
 		torch.save(filename, xplog)
-		savemodel(fname..'.lm',lm)
-		savemodel(fname..'.rrnn',rrnn)
+		savemodel(filename..'.lm',lm)
+		savemodel(filename..'.rrnn',rrnn)
 		ntrial = 0
 	elseif ntrial >= earlystop then
 		print("No new minima found after "..ntrial.." epochs.")
