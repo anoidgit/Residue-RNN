@@ -6,12 +6,21 @@ function FastResidueRecurrent:__init(inid, input, nstate, rinput, rstate, merge,
 	self.output={}
 	self.gradInput={}
 	self.state={}
-	self.statem1=inid["state-1"]
-	self.state0=inid["state0"]
-	self.input0=inid["input0"]
-	self.updstate0=self.statem1:clone():zero()
-	self.updstatem1=self.updstate0:clone()
-	self.updinput0=self.input0:clone():zero()
+	self.srcstatem1=inid["state-1"]
+	self.srcstate0=inid["state0"]
+	self.srcinput0=inid["input0"]
+	self.batchsize=1
+	self.statesize=self.srcstatem1:size()[2]
+	self.inputsize=self.srcinput0:size()[2]
+	self.statem1=self.srcstatem1
+	self.state0=self.srcstate0
+	self.input0=self.srcinput0
+	self.srcupdstate0=self.statem1:clone():zero()
+	self.srcupdstatem1=self.srcupdstate0:clone()
+	self.srcupdinput0=self.input0:clone():zero()
+	self.updstate0=self.srcupdstate0
+	self.updstatem1=self.srcupdstatem1
+	self.updinput0=self.srcupdinput0
 	local parrelModel=nn.ParallelTable()
 		:add(input)
 		:add(nstate)
@@ -26,13 +35,23 @@ end
 function FastResidueRecurrent:forward(inputTable)
 	-- output(t) = transfer(state(t-1) + input(t) + state(t-2) + input(t-1))
 	self.input=inputTable or self.input
+	local bsize=self.input[1]:size()[1]
+	if bsize~=self.batchsize then
+		self.batchsize=bsize
+		self.input0=self.srcinput0:expandAs(self.input[1])
+		self.updinput0=self.srcupdinput0:expandAs(self.input0)
+		self.statem1=self.srcstatem1:expand(self.batchsize,self.statesize)
+		self.state0=self.srcstate0:expandAs(self.statem1)
+		self.updstate0=self.srcupdstate0:expandAs(self.statem1)
+		self.updstatem1=self.srcupdstatem1:expandAs(self.statem1)
+	end
 	self.input[0]=self.input0
 	self.state={}
 	self.output={}
 	self.state[1]=self.statem1
 	self.state[2]=self.state0
 	for step=1,#self.input do
-		self.state[step+2]=self.stateModel:updateOutput({inputTable[step],self.state[step+1],inputTable[step-1],self.state[step]}):clone()
+		self.state[step+2]=self.stateModel:updateOutput({self.input[step],self.state[step+1],self.input[step-1],self.state[step]}):clone()
 		self.output[step]=self.outputModel:updateOutput(self.state[step+2]):clone()
 	end
 	return self.output
@@ -83,9 +102,9 @@ end
 function FastResidueRecurrent:zeroGradParameters()
 	self.stateModel:zeroGradParameters()
 	self.outputModel:zeroGradParameters()
-	self.updstate0:fill(0)
-	self.updstatem1:fill(0)
-	self.updinput0:fill(0)
+	self.updstate0:zero()
+	self.updstatem1:zero()
+	self.updinput0:zero()
 end
 
 function FastResidueRecurrent:updateParameters(learningRate)
@@ -97,5 +116,5 @@ function FastResidueRecurrent:updateParameters(learningRate)
 end
 
 function FastResidueRecurrent:__tostring__()
-	torch.type(self) .. "{\nState Module:" ..  tostring(self.stateModel) .."\nOutput Module:" .. tostring(self.outputModel) .. "\n}"
+	return torch.type(self) .. "{\nState Module:" ..  tostring(self.stateModel) .."\nOutput Module:" .. tostring(self.outputModel) .. "\n}"
 end
