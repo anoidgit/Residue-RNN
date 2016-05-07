@@ -2,6 +2,8 @@ require 'paths'
 require 'rnn'
 local dl = require 'dataload'
 
+torch.setdefaulttensortype('torch.FloatTensor')
+
 function savemodel(fname,modelsave)
 	file=torch.DiskFile(fname,'w')
 	file:writeObject(modelsave)
@@ -11,11 +13,11 @@ end
 startlr=0.05
 minlr=0.00001
 saturate=400--'epoch at which linear decayed LR will reach minlr'
-batchsize=64
-maxepoch=30
+batchsize=256
+maxepoch=50
 earlystop=5
 cutoff=5
-seqlen=32
+seqlen=64
 hiddensize=200
 progress=true
 savepath=paths.concat(dl.SAVE_PATH, 'rnnlm')
@@ -103,6 +105,7 @@ while epoch <= maxepoch do
 		-- forward
 		local outputs = lm:forward(inputs)
 		local err = criterion:forward(outputs, targets)
+		print((#outputs).."	"..(#targets))
 		sumErr = sumErr + err
 		
 		-- backward 
