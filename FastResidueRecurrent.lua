@@ -95,5 +95,5 @@ function FastResidueRecurrent:updateParameters(learningRate)
 end
 
 function FastResidueRecurrent:__tostring__()
-	return torch.type(self) .. "{\nOutput Module:" .. tostring(self.outputModel) .. "\nState Module:" ..  tostring(self.stateModel) .."\n}"
+	torch.type(self) .. "{\nState Module:" ..  tostring(self.stateModel) .."\nOutput Module:" .. tostring(self.outputModel) .. "\n}"
 end
