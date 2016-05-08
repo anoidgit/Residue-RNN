@@ -122,5 +122,5 @@ function ClipGradientFastResidueRecurrent:updateParameters(learningRate)
 end
 
 function ClipGradientFastResidueRecurrent:__tostring__()
-	return torch.type(self) .. "{\nState Module:" ..  tostring(self.stateModel):gsub('\n', '\n' .. "	") .."\nOutput Module:" .. tostring(self.outputModel):gsub('\n', '\n' .. "	") .. "\n}"
+	return torch.type(self) .. "{\n	State Module:" ..  tostring(self.stateModel):gsub('\n', '\n' .. "	") .."\n	Output Module:" .. tostring(self.outputModel):gsub('\n', '\n' .. "	") .. "\n}"
 end
