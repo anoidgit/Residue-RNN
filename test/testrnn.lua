@@ -10,11 +10,11 @@ function savemodel(fname,modelsave)
 	file:close()
 end
 
-startlr=0.05
-minlr=0.00001
-saturate=400--'epoch at which linear decayed LR will reach minlr'
+startlr=0.005
+minlr=0.000001
+saturate=120--'epoch at which linear decayed LR will reach minlr'
 batchsize=256
-maxepoch=100
+maxepoch=200
 earlystop=15
 cutoff=5
 seqlen=64
@@ -105,7 +105,6 @@ while epoch <= maxepoch do
 		-- forward
 		local outputs = lm:forward(inputs)
 		local err = criterion:forward(outputs, targets)
-		print((#outputs).."	"..(#targets))
 		sumErr = sumErr + err
 		
 		-- backward 
@@ -171,6 +170,8 @@ while epoch <= maxepoch do
 		print("No new minima found after "..ntrial.." epochs.")
 		print("Stopping experiment.")
 		break
+	else
+		lr=lr/2
 	end
 
 	collectgarbage()
