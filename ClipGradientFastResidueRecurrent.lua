@@ -59,11 +59,12 @@ function ClipGradientFastResidueRecurrent:forward(inputTable)
 end
 
 function ClipGradientFastResidueRecurrent:backward(inputTable, gradOutputTable, scale)
+	self.gradOutput = self.gradOutput or gradOutputTable
 	scale = scale or 1
 	local input,state_1,input_1,state_2
 	local gradState={}
-	for step=#gradOutputTable,1,-1 do
-		gradState[step]=self.outputModel:backward(self.state[step+2],gradOutputTable[step],scale):clone()
+	for step=#self.gradOutput,1,-1 do
+		gradState[step]=self.outputModel:backward(self.state[step+2],self.gradOutput[step],scale):clone()
 	end
 	local cstep=#gradState
 	gradState[cstep]:cmin(self.clipgradient)
@@ -86,16 +87,16 @@ function ClipGradientFastResidueRecurrent:backward(inputTable, gradOutputTable, 
 	if (scale~=1) then
 		state_2:mul(scale)
 	end
-	self.updstate0=state_2:clone()--state 0 update here,step=2;gradOutputTable[step-2]+=state_2
+	self.updstate0=state_2:clone()--state 0 update here,step=2;self.gradOutput[step-2]+=state_2
 	self.gradInput[2]:add(input)
 	self.gradInput[1]=input_1:clone()
 	gradState[1]:cmin(self.clipgradient)
 	input,state_1,input_1,state_2=unpack(self.stateModel:backward({inputTable[1],self.state[2],self.input0,self.state[1]},gradState[1]))
-	self.updstate0:add(scale,state_1)--state 0 update here,step=1;gradOutputTable[0]+=state_1
+	self.updstate0:add(scale,state_1)--state 0 update here,step=1;self.gradOutput[0]+=state_1
 	if (scale~=1) then
 		state_2:mul(scale)
 	end
-	self.updstatem1=state_2:clone()--state -1 update here;gradOutputTable[-1]+=state_2
+	self.updstatem1=state_2:clone()--state -1 update here;self.gradOutput[-1]+=state_2
 	self.gradInput[1]:add(input)
 	if (scale~=1) then
 		input_1:mul(scale)
