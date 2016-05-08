@@ -191,8 +191,8 @@ print("Test PPL : "..ppl)
 
 xplog.testppl = ppl
 
-local filename = paths.concat(savepath, id..'.t7.rs')
-print("Saving Result"..filename)
+local filename = paths.concat(savepath, id..'.t7.log')
+print("Saving log"..filename)
 torch.save(filename, xplog)
 
 print("Evaluate model using : ")
