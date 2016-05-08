@@ -11,7 +11,7 @@ function savemodel(fname,modelsave)
 	file:close()
 end
 
-startlr=0.005
+startlr=0.0125
 minlr=0.000001
 batchsize=256
 maxepoch=200
@@ -165,7 +165,7 @@ while epoch <= maxepoch do
 
 	-- learning rate decay
 	if lrsdcay == 3 then
-		lr=lr/5
+		lr=lr/4
 		lrsdcay=0
 	end
 
