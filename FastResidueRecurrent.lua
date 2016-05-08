@@ -58,7 +58,7 @@ function FastResidueRecurrent:forward(inputTable)
 end
 
 function FastResidueRecurrent:backward(inputTable, gradOutputTable, scale)
-	self.gradOutput = self.gradOutput or gradOutputTable
+	self.gradOutput = gradOutputTable or self.gradOutput
 	scale = scale or 1
 	local input,state_1,input_1,state_2
 	local gradState={}
