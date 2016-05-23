@@ -18,9 +18,9 @@ function SecureFastResidueRecurrent:__init(inid, input, nstate, rinput, rstate, 
 	self.srcupdstate0=self.statem1:clone():zero()
 	self.srcupdstatem1=self.srcupdstate0:clone()
 	self.srcupdinput0=self.input0:clone():zero()
-	self.updstate0=self.srcupdstate0
-	self.updstatem1=self.srcupdstatem1
-	self.updinput0=self.srcupdinput0
+	self.updstate0=self.srcupdstate0:clone()
+	self.updstatem1=self.srcupdstatem1:clone()
+	self.updinput0=self.srcupdinput0:clone()
 	self.train=true
 	local parrelModel=nn.ParallelTable()
 		:add(input)
@@ -43,45 +43,8 @@ function SecureFastResidueRecurrent:updateOutput(inputTable)
 		self.updinput0=self.srcupdinput0:expandAs(self.input0)
 		self.statem1=self.srcstatem1:expand(self.batchsize,self.statesize)
 		self.state0=self.srcstate0:expandAs(self.statem1)
-		self.updstate0=self.srcupdstate0:expandAs(self.statem1)
-		self.updstatem1=self.srcupdstatem1:expandAs(self.statem1)
-	end
-	self.input[0]=self.input0
-	self.state={}
-	self.output={}
-	if self.train then
-		self.state[1]=self.statem1
-		self.state[2]=self.state0
-		for step=1,#self.input do
-			self.state[step+2]=self.stateModel:updateOutput({self.input[step],self.state[step+1],self.input[step-1],self.state[step]}):clone()
-			self.output[step]=self.outputModel:updateOutput(self.state[step+2]):clone()
-		end
-	else
-		local evastatem1=self.statem1
-		local evastate0=self.state0
-		local evastate
-		for step=1,#self.input do
-			evastate=self.stateModel:updateOutput({self.input[step],evastate0,self.input[step-1],evastatem1}):clone()
-			self.output[step]=self.outputModel:updateOutput(evastate):clone()
-			evastatem1=evastate0
-			evastate0=evastate
-		end
-	end
-	return self.output
-end
-
-function SecureFastResidueRecurrent:forward(inputTable)
-	-- output(t) = transfer(state(t-1) + input(t) + state(t-2) + input(t-1))
-	self.input=inputTable or self.input
-	local bsize=self.input[1]:size()[1]
-	if bsize~=self.batchsize then
-		self.batchsize=bsize
-		self.input0=self.srcinput0:expandAs(self.input[1])
-		self.updinput0=self.srcupdinput0:expandAs(self.input0)
-		self.statem1=self.srcstatem1:expand(self.batchsize,self.statesize)
-		self.state0=self.srcstate0:expandAs(self.statem1)
-		self.updstate0=self.srcupdstate0:expandAs(self.statem1)
-		self.updstatem1=self.srcupdstatem1:expandAs(self.statem1)
+		self.updstate0=self.srcupdstate0:repeatTensor(self.batchsize,1)
+		self.updstatem1=self.srcupdstatem1:repeatTensor(self.batchsize,1)
 	end
 	self.input[0]=self.input0
 	self.state={}
@@ -168,9 +131,12 @@ end
 function SecureFastResidueRecurrent:updateParameters(learningRate)
 	self.stateModel:updateParameters(learningRate)
 	self.outputModel:updateParameters(learningRate)
-	self.state0:add(-learningRate,self.updstate0)
-	self.statem1:add(-learningRate,self.updstatem1)
-	self.input0:add(-learningRate,self.updinput0)
+	local slrate=-learningRate/self.batchsize
+	for step=1,self.batchsize do
+		self.state0:add(slrate,self.updstate0[step])
+		self.statem1:add(slrate,self.updstatem1[step])
+		self.input0:add(slrate,self.updinput0[step])
+	end
 end
 
 function SecureFastResidueRecurrent:training()
